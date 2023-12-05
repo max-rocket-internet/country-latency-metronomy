@@ -14,21 +14,23 @@ import (
 
 func GetLatency(destination Destination) (result Result, err error) {
 	result.Ip = destination.Ip
-	reachable, err := canPing(destination.Ip)
 
+	reachable, err := canPing(destination.Ip)
 	if err != nil {
 		return result, errors.New(fmt.Sprintf("Ping error to '%s': %s \n", destination.Ip, err.Error()))
 	}
 
 	if destination.CountryCode == "" {
 		destination.CountryCode, err = ipcountry.GetIpCountry(destination.Ip)
+	} else {
+		destination.CountryCode = strings.ToLower(destination.CountryCode)
 	}
-
-	result.CountryCode = strings.ToLower(destination.CountryCode)
 
 	if err != nil && !reachable {
 		return result, errors.New(fmt.Sprintf("destination is not reachable and whois lookup failed for '%s': %s", destination.Ip, err.Error()))
 	}
+
+	result.CountryCode = destination.CountryCode
 
 	if reachable {
 		latency, err := measureLatency(destination.Ip)

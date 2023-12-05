@@ -1,6 +1,12 @@
 # country-latency-metronomy
 
-A golang package for measuring latency to an IP address with a fallback, "best effort" mechanism as follows:
+A golang package for measuring latency to an IP address with a fallback, "best effort" mechanism.
+
+The package is thread safe and includes caching of whois queries so is ideal for running in goroutines for measuring latency to many IP addresses in parallel.
+
+## How it works
+
+The function [GetLatency](pkg/latency/latency.go#L15) will:
 
 1. Use ICMP echo to measure latency to the destination IP
 2. If previous step fails:
@@ -16,7 +22,7 @@ It will measure:
 - P90 Latency
 - Packet Loss
 
-The package is thread safe and includes caching of whois queries so is ideal for running in goroutines to for measuring latency to many IP addresses in parallel.
+## Example
 
 A small example CLI tool is included, [main.go](main.go), to show how the package works:
 
