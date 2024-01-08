@@ -12,6 +12,11 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+const (
+	tracerouteMaxHops   = 24
+	tracerouteTimeoutMs = 500
+)
+
 type traceRouteHops struct {
 	hops []string
 	sync.RWMutex
@@ -38,8 +43,8 @@ func (i *traceRouteHops) Append(hop string) {
 func tracerouteIp(ip string) ([]string, error) {
 	log.Debugf("Starting traceroute to '%s' \n", ip)
 	options := traceroute.TracerouteOptions{}
-	options.SetMaxHops(24)
-	options.SetTimeoutMs(500)
+	options.SetMaxHops(tracerouteMaxHops)
+	options.SetTimeoutMs(tracerouteTimeoutMs)
 
 	c := make(chan traceroute.TracerouteHop, 0)
 	hops := traceRouteHops{}

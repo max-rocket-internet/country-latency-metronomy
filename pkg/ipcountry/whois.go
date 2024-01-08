@@ -60,6 +60,10 @@ func GetIpCountry(ipAddress string) (countryCode string, err error) {
 		return "unknown", errors.New(fmt.Sprintf("whois lookup error for '%s': %s \n", ipAddress, err.Error()))
 	}
 
+	if whoisInfo.Country == "" {
+		return "unknown", errors.New("whois results contain no country")
+	}
+
 	countryCode = strings.ToLower(nonAlphanumericRegex.ReplaceAllString(strings.ToLower(whoisInfo.Country), ""))
 
 	cache.Save(countryCode, ipAddress)
