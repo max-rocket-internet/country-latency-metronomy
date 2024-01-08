@@ -27,12 +27,13 @@ func TestGetLatency(t *testing.T) {
 	assert.False(t, result.Successful)
 	assert.ErrorContains(t, err, "Country code should be 2 characters (ISO 3166-1 alpha-2)")
 
-	destination = Destination{Ip: "8.8.8.8"}
-	result, err = GetLatency(destination)
-	assert.True(t, result.Successful)
-	assert.Zero(t, result.Latency.PacketLoss)
-	assert.Equal(t, result.AlternativeIP, "")
-	assert.NoError(t, err)
+	// This test needs root priviliges
+	// destination = Destination{Ip: "8.8.8.8"}
+	// result, err = GetLatency(destination)
+	// assert.True(t, result.Successful)
+	// assert.Zero(t, result.Latency.PacketLoss)
+	// assert.Equal(t, result.AlternativeIP, "")
+	// assert.NoError(t, err)
 
 	// This test needs root priviliges
 	// destination = Destination{Ip: "82.88.43.13"}

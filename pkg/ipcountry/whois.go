@@ -57,7 +57,7 @@ func GetIpCountry(ipAddress string) (countryCode string, err error) {
 
 	whoisInfo, err := ripego.IPLookup(ipAddress)
 	if err != nil {
-		return "unknown", errors.New(fmt.Sprintf("whois lookup error for '%s': %s \n", ipAddress, err.Error()))
+		return "unknown", fmt.Errorf("whois lookup error for '%s': %s \n", ipAddress, err.Error())
 	}
 
 	if whoisInfo.Country == "" {
