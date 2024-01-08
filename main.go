@@ -29,5 +29,5 @@ func main() {
 		log.Error(err)
 	}
 
-	fmt.Println(result.GetResult())
+	fmt.Println(result.GenerateText())
 }

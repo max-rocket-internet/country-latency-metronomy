@@ -3,6 +3,7 @@ package latency
 import (
 	"errors"
 	"fmt"
+	"net/netip"
 	"strings"
 	"time"
 
@@ -13,11 +14,16 @@ import (
 )
 
 func GetLatency(destination Destination) (result Result, err error) {
+	err = validateDestination(destination)
+	if err != nil {
+		return result, err
+	}
+
 	result.Ip = destination.Ip
 
 	reachable, err := canPing(destination.Ip)
 	if err != nil {
-		return result, errors.New(fmt.Sprintf("Ping error to '%s': %s \n", destination.Ip, err.Error()))
+		return result, fmt.Errorf("Ping error to '%s': %s \n", destination.Ip, err.Error())
 	}
 
 	if destination.CountryCode == "" {
@@ -27,7 +33,7 @@ func GetLatency(destination Destination) (result Result, err error) {
 	}
 
 	if err != nil && !reachable {
-		return result, errors.New(fmt.Sprintf("destination is not reachable and whois lookup failed for '%s': %s", destination.Ip, err.Error()))
+		return result, fmt.Errorf("destination is not reachable and whois lookup failed for '%s': %s", destination.Ip, err.Error())
 	}
 
 	result.CountryCode = destination.CountryCode
@@ -59,12 +65,12 @@ func GetLatency(destination Destination) (result Result, err error) {
 func getAlternativeLatency(d Destination) (result Latency, alternateIp string, err error) {
 	tracerouteHops, err := tracerouteIp(d.Ip)
 	if err != nil {
-		return result, "", errors.New(fmt.Sprintf("traceroute error for '%s': %s", d.Ip, err.Error()))
+		return result, "", fmt.Errorf("traceroute error for '%s': %s", d.Ip, err.Error())
 	}
 
 	alternateIp, err = filterTraceRouteHops(d.CountryCode, tracerouteHops)
 	if err != nil {
-		return result, "", errors.New(fmt.Sprintf("traceroute filtering error for '%s': %s", d.Ip, err.Error()))
+		return result, "", fmt.Errorf("traceroute filtering error for '%s': %s", d.Ip, err.Error())
 	}
 
 	latency, err := measureLatency(alternateIp)
@@ -78,7 +84,7 @@ func getAlternativeLatency(d Destination) (result Latency, alternateIp string, e
 func canPing(host string) (result bool, err error) {
 	pinger, err := probing.NewPinger(host)
 	if err != nil {
-		return false, errors.New(fmt.Sprintf("Could not create Pinger to '%s'", host))
+		return false, fmt.Errorf("Could not create Pinger to '%s'", host)
 	}
 
 	pinger.Count = 1
@@ -86,7 +92,7 @@ func canPing(host string) (result bool, err error) {
 
 	err = pinger.Run()
 	if err != nil {
-		return false, errors.New(fmt.Sprintf("Could not run Pinger to '%s' \n", host))
+		return false, fmt.Errorf("Could not run Pinger to '%s' \n", host)
 	}
 
 	pingStats := pinger.Statistics()
@@ -105,7 +111,7 @@ func measureLatency(ip string) (result Latency, err error) {
 
 	pinger, err := probing.NewPinger(ip)
 	if err != nil {
-		return result, errors.New(fmt.Sprintf("error creating pinger: %s", err.Error()))
+		return result, fmt.Errorf("error creating pinger: %s", err.Error())
 	}
 
 	pinger.Count = 10
@@ -113,17 +119,17 @@ func measureLatency(ip string) (result Latency, err error) {
 
 	err = pinger.Run()
 	if err != nil {
-		return result, errors.New(fmt.Sprintf("error running pinger: %s", err.Error()))
+		return result, fmt.Errorf("error running pinger: %s", err.Error())
 	}
 
 	pingStats := pinger.Statistics()
 
 	if pingStats.PacketLoss > 50 {
-		return result, errors.New(fmt.Sprintf("packet loss too high for '%s': %.1f%%", ip, pingStats.PacketLoss))
+		return result, fmt.Errorf("packet loss too high for '%s': %.1f%%", ip, pingStats.PacketLoss)
 	}
 
 	if len(pingStats.Rtts) < 4 {
-		return result, errors.New(fmt.Sprintf("too few Rtts for '%s': %d", ip, len(pingStats.Rtts)))
+		return result, fmt.Errorf("too few Rtts for '%s': %d", ip, len(pingStats.Rtts))
 	}
 
 	pingMsRtts := []float64{}
@@ -133,23 +139,49 @@ func measureLatency(ip string) (result Latency, err error) {
 
 	mean, err := stats.Mean(pingMsRtts)
 	if err != nil {
-		return result, errors.New(fmt.Sprintf("error calculating mean: %s", err.Error()))
+		return result, fmt.Errorf("error calculating mean: %s", err.Error())
 	}
 
 	median, err := stats.Median(pingMsRtts)
 	if err != nil {
-		return result, errors.New(fmt.Sprintf("error calculating median: %s", err.Error()))
+		return result, fmt.Errorf("error calculating median: %s", err.Error())
 	}
 
 	p90, err := stats.Percentile(pingMsRtts, 90)
 	if err != nil {
-		return result, errors.New(fmt.Sprintf("error calculating percentile: %s", err.Error()))
+		return result, fmt.Errorf("error calculating percentile: %s", err.Error())
 	}
 
-	result.LatencyMedianMs = median
-	result.LatencyMeanMs = mean
-	result.LatencyP90Ms = p90
+	result.MedianMs = median
+	result.MeanMs = mean
+	result.P90Ms = p90
 	result.PacketLoss = pingStats.PacketLoss
 
 	return result, nil
+}
+
+func validateDestination(destination Destination) error {
+	if destination.Ip == "" {
+		return errors.New("Destination IP is blank")
+	}
+
+	if destination.CountryCode != "" && len(destination.CountryCode) != 2 {
+		return errors.New("Country code should be 2 characters (ISO 3166-1 alpha-2)")
+	}
+
+	destinationIp, err := netip.ParseAddr(destination.Ip)
+	if err != nil {
+		return err
+	}
+	if destinationIp.IsPrivate() {
+		return fmt.Errorf("Private IP address (RFC 1918) given '%s'", destination.Ip)
+	}
+	if destinationIp.IsLoopback() {
+		return fmt.Errorf("Loopback address given '%s'", destination.Ip)
+	}
+	if destinationIp.IsMulticast() {
+		return fmt.Errorf("Multicast address given '%s'", destination.Ip)
+	}
+
+	return nil
 }

@@ -22,7 +22,7 @@ It will measure:
 - P90 Latency
 - Packet Loss
 
-## Example
+## CLI tool example
 
 A small example CLI tool is included, [main.go](main.go), to show how the package works:
 
@@ -57,3 +57,38 @@ Median latency: 200.0ms
 ```
 
 **It is required to run the CLI tool with root permission as it creates raw sockets**
+
+## Package example
+
+```go
+package main
+
+import (
+	"fmt"
+
+	"github.com/max-rocket-internet/country-latency-metronomy/pkg/latency"
+	log "github.com/sirupsen/logrus"
+)
+
+func main() {
+	log.SetLevel(log.DebugLevel)
+
+	destination := latency.Destination{Ip: "124.120.154.1"}
+	result, _ := latency.GetLatency(destination)
+
+	fmt.Printf("%+v\n", result)
+}
+```
+
+Output:
+
+```console
+DEBU[0002] Ping failed to '124.120.154.1', no reply
+DEBU[0002] Starting traceroute to '124.120.154.1'
+DEBU[0026] Traceroute to '124.120.154.1' finished, 16 hops
+DEBU[0026] Filtering traceroute results for country code 'th'
+DEBU[0026] Found latest good hop '171.102.249.169'
+DEBU[0026] Starting latancy analysis of '171.102.249.169'
+
+{Ip:124.120.154.1 CountryCode:th AlternativeIP:171.102.249.169 ErrorMessage: Successful:true Latency:{LatencyMeanMs:214.9 LatencyMedianMs:201 LatencyP90Ms:222 PacketLoss:0}}
+```

@@ -1,7 +1,6 @@
 package latency
 
 import (
-	"errors"
 	"fmt"
 	"net"
 	"slices"
@@ -10,6 +9,11 @@ import (
 	"github.com/aeden/traceroute"
 	"github.com/max-rocket-internet/country-latency-metronomy/pkg/ipcountry"
 	log "github.com/sirupsen/logrus"
+)
+
+const (
+	tracerouteMaxHops   = 24
+	tracerouteTimeoutMs = 500
 )
 
 type traceRouteHops struct {
@@ -38,10 +42,10 @@ func (i *traceRouteHops) Append(hop string) {
 func tracerouteIp(ip string) ([]string, error) {
 	log.Debugf("Starting traceroute to '%s' \n", ip)
 	options := traceroute.TracerouteOptions{}
-	options.SetMaxHops(24)
-	options.SetTimeoutMs(500)
+	options.SetMaxHops(tracerouteMaxHops)
+	options.SetTimeoutMs(tracerouteTimeoutMs)
 
-	c := make(chan traceroute.TracerouteHop, 0)
+	c := make(chan traceroute.TracerouteHop)
 	hops := traceRouteHops{}
 
 	go func() {
@@ -59,7 +63,7 @@ func tracerouteIp(ip string) ([]string, error) {
 
 	_, err := traceroute.Traceroute(ip, &options, c)
 	if err != nil {
-		return nil, errors.New(fmt.Sprintf("error doing trceroute: %s", err.Error()))
+		return nil, fmt.Errorf("error doing trceroute: %s", err.Error())
 	}
 
 	log.Debugf("Traceroute to '%s' finished, %d hops \n", ip, hops.Length())
@@ -96,5 +100,5 @@ func filterTraceRouteHops(country string, traceRouteHops []string) (result strin
 		return ip, nil
 	}
 
-	return result, errors.New(fmt.Sprintf("No suitable hops found for country '%s'", country))
+	return result, fmt.Errorf("No suitable hops found for country '%s'", country)
 }
