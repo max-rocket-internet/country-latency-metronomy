@@ -3,10 +3,10 @@ github.com/aeden/traceroute v0.0.0-20210211061815-03f5f7cb7908/go.mod h1:HPBB/4v
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
-github.com/digineo/ripego v0.0.0-20170727221421-690d8524d3a6 h1:Lir9TcNYBaKBHVp4qmB2rQNKKv/sH7x2drS5oh5i1wE=
-github.com/digineo/ripego v0.0.0-20170727221421-690d8524d3a6/go.mod h1:K4eV6vjNMcTdTwtxSqtAWsEkOhRXXVhFYG5eabIzVD8=
 github.com/google/uuid v1.3.0 h1:t6JiXgmwXMjEs8VusXIJk2BXHsn+wx8BZdTaoZ5fu7I=
 github.com/google/uuid v1.3.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
+github.com/max-rocket-internet/ripego v1.1.0 h1:fzjUuy/n78A8WWGr4BWvFiXYpPv/k6ZZ9Om7oE0yWg8=
+github.com/max-rocket-internet/ripego v1.1.0/go.mod h1:qNRdzEOMTjJ4Fsa9B2ZKgMQ01IZaGM7/ffwAxoR3FPc=
 github.com/montanaflynn/stats v0.7.1 h1:etflOAAHORrCC44V+aR6Ftzort912ZU+YLiSTuV8eaE=
 github.com/montanaflynn/stats v0.7.1/go.mod h1:etXPPgVO6n31NxCd9KQUMvCM+ve0ruNzt6R8Bnaayow=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
