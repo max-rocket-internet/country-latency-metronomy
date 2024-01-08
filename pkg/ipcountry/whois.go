@@ -8,7 +8,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/digineo/ripego"
+	"github.com/max-rocket-internet/ripego"
 )
 
 var (
